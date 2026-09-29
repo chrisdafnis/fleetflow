@@ -1,0 +1,15 @@
+C:\Dev\FleetFlow\FleetFlow.Application\bin\Debug\net10.0\FleetFlow.Application.deps.json
+C:\Dev\FleetFlow\FleetFlow.Application\bin\Debug\net10.0\FleetFlow.Application.dll
+C:\Dev\FleetFlow\FleetFlow.Application\bin\Debug\net10.0\FleetFlow.Application.pdb
+C:\Dev\FleetFlow\FleetFlow.Application\bin\Debug\net10.0\FleetFlow.Domain.dll
+C:\Dev\FleetFlow\FleetFlow.Application\bin\Debug\net10.0\FleetFlow.Domain.pdb
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.csproj.AssemblyReference.cache
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.AssemblyInfoInputs.cache
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.AssemblyInfo.cs
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.csproj.CoreCompileInputs.cache
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlo.A95539B2.Up2Date
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.dll
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\refint\FleetFlow.Application.dll
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\FleetFlow.Application.pdb
+C:\Dev\FleetFlow\FleetFlow.Application\obj\Debug\net10.0\ref\FleetFlow.Application.dll

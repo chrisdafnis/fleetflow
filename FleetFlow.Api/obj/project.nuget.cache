@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "JD0DEP8V5P4=",
+  "success": true,
+  "projectFilePath": "C:\\Dev\\FleetFlow\\FleetFlow.Api\\FleetFlow.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Chris\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.12\\microsoft.aspnetcore.openapi.10.0.12.nupkg.sha512",
+    "C:\\Users\\Chris\\.nuget\\packages\\microsoft.openapi\\2.12.0\\microsoft.openapi.2.12.0.nupkg.sha512"
+  ],
+  "logs": []
+}

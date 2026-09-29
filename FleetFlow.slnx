@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="FleetFlow.Api/FleetFlow.Api.csproj" />
+  <Project Path="FleetFlow.Application/FleetFlow.Application.csproj" />
+  <Project Path="FleetFlow.Domain/FleetFlow.Domain.csproj" />
+  <Project Path="FleetFlow.Infrastructure/FleetFlow.Infrastructure.csproj" />
+</Solution>
