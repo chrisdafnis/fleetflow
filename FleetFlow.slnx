@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="FleetFlow.Api/FleetFlow.Api.csproj" />
+  <Project Path="FleetFlow.Application.Tests/FleetFlow.Application.Tests.csproj" Id="05f44c55-058c-4aca-b1a2-3c325bc5d40f" />
   <Project Path="FleetFlow.Application/FleetFlow.Application.csproj" />
   <Project Path="FleetFlow.Domain.Tests/FleetFlow.Domain.Tests.csproj" Id="d5c4edf7-7dde-495c-969e-25b3954707da" />
   <Project Path="FleetFlow.Domain/FleetFlow.Domain.csproj" />
