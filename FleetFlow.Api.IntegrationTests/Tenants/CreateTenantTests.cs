@@ -1,43 +1,82 @@
-﻿
-using System.Net;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
+using FleetFlow.Api.IntegrationTests.Authentication;
 using FleetFlow.Api.IntegrationTests.Infrastructure;
+using AuthFactory = FleetFlow.Api.IntegrationTests.Authentication.TestJwtTokenFactory;
 
 namespace FleetFlow.Api.IntegrationTests.Tenants;
 
 public sealed class CreateTenantTests
 {
     [Fact]
-    public async Task CreateTenant_WithValidName_ReturnsCreated()
+    public async Task CreateTenant_WithoutToken_ReturnsUnauthorized()
     {
-        // Arrange
         using var factory = new FleetFlowWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var request = new
-        {
-            Name = "Acme Logistics"
-        };
-
-        // Act
         var response = await client.PostAsJsonAsync(
             "/api/tenants",
-            request);
+            new { Name = "Test Tenant" });
 
-        // Assert
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateTenant_WithNormalUser_ReturnsForbidden()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        AuthenticateClient(client, isAdministrator: false);
+
+        var response = await client.PostAsJsonAsync(
+            "/api/tenants",
+            new { Name = "Test Tenant" });
+
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateTenant_WithAdministrator_ReturnsCreated()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        AuthenticateClient(client, isAdministrator: true);
+
+        var response = await client.PostAsJsonAsync(
+            "/api/tenants",
+            new { Name = "Test Tenant" });
+
         Assert.Equal(
             HttpStatusCode.Created,
             response.StatusCode);
 
-        var result = await response.Content
-            .ReadFromJsonAsync<CreateTenantResponse>();
+        using var json = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync());
 
-        Assert.NotNull(result);
-        Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.Equal("Acme Logistics", result.Name);
+        var tenantId = json.RootElement
+            .GetProperty("id")
+            .GetGuid();
+
+        Assert.NotEqual(Guid.Empty, tenantId);
     }
 
-    private sealed record CreateTenantResponse(
-        Guid Id,
-        string Name);
+    private static void AuthenticateClient(
+        HttpClient client,
+        bool isAdministrator)
+    {
+        var token = AuthFactory.CreateToken(Guid.NewGuid(), isAdministrator: isAdministrator);
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+    }
 }

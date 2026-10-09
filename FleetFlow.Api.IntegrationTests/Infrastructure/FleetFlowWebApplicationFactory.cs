@@ -1,4 +1,5 @@
 ﻿
+using FleetFlow.Api.IntegrationTests.Authentication;
 using FleetFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+using System.Text;
 
 namespace FleetFlow.Api.IntegrationTests.Infrastructure;
 
@@ -21,12 +22,27 @@ public sealed class FleetFlowWebApplicationFactory
     {
         builder.UseEnvironment("Testing");
 
+        // Supply JWT configuration for integration tests.
+        builder.UseSetting(
+            "Jwt:Issuer",
+            TestJwtTokenFactory.Issuer);
+
+        builder.UseSetting(
+            "Jwt:Audience",
+            TestJwtTokenFactory.Audience);
+
+        builder.UseSetting(
+            "Jwt:Key",
+            Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(
+                    TestJwtTokenFactory.Key)));
+
+        // Replace SQL Server with SQLite in-memory.
         builder.ConfigureServices(services =>
         {
-            // Remove the production SQL Server configuration.
-            services.RemoveAll<DbContextOptions<FleetFlowDbContext>>();
+            services.RemoveAll<
+                DbContextOptions<FleetFlowDbContext>>();
 
-            // Remove the SQL Server provider configuration.
             services.RemoveAll<
                 IDbContextOptionsConfiguration<FleetFlowDbContext>>();
 
@@ -35,10 +51,9 @@ public sealed class FleetFlowWebApplicationFactory
 
             _connection.Open();
 
-            services.AddDbContext<FleetFlowDbContext>(options =>
-                options.UseSqlite(_connection));
+            services.AddDbContext<FleetFlowDbContext>(
+                options => options.UseSqlite(_connection));
 
-            // Create the database schema for the tests.
             using var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
 

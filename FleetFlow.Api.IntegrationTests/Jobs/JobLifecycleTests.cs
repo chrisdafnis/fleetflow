@@ -1,8 +1,9 @@
-﻿
-using System.Net;
-using System.Net.Http.Json;
+﻿using FleetFlow.Api.IntegrationTests.Authentication;
 using FleetFlow.Api.IntegrationTests.Infrastructure;
 using FleetFlow.Domain;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace FleetFlow.Api.IntegrationTests.Jobs;
 
@@ -16,6 +17,9 @@ public sealed class JobLifecycleTests
         using var client = factory.CreateClient();
 
         var tenantId = await CreateTenantAsync(client);
+
+        // Switch to a user authorised for this tenant.
+        AuthenticateClient(client, tenantId);
 
         // Create job
         var createResponse = await client.PostAsJsonAsync(
@@ -105,6 +109,10 @@ public sealed class JobLifecycleTests
         using var client = factory.CreateClient();
 
         var tenantId = await CreateTenantAsync(client);
+
+        // Switch from administrator to tenant user.
+        AuthenticateClient(client, tenantId);
+
         var jobId = await CreateJobAsync(client, tenantId);
 
         var jobUrl =
@@ -132,29 +140,52 @@ public sealed class JobLifecycleTests
             invalidResponse.StatusCode);
     }
 
+
     [Fact]
     public async Task GetJob_WithDifferentTenant_ReturnsNotFound()
     {
         using var factory = new FleetFlowWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var tenantId = await CreateTenantAsync(client);
-        var jobId = await CreateJobAsync(client, tenantId);
+        // Create Tenant A.
+        var tenantAId = await CreateTenantAsync(client);
 
-        // Create a second, different tenant
-        var otherTenantId = await CreateTenantAsync(client);
+        // Authenticate as Tenant A.
+        AuthenticateClient(client, tenantAId);
 
+        // Create a job belonging to Tenant A.
+        var jobId = await CreateJobAsync(client, tenantAId);
+
+        // Create Tenant B (helper uses administrator token).
+        var tenantBId = await CreateTenantAsync(client);
+
+        // Authenticate as Tenant B.
+        AuthenticateClient(client, tenantBId);
+
+        // Attempt to retrieve Tenant A's job through Tenant B's route.
         var response = await client.GetAsync(
-            $"/api/tenants/{otherTenantId}/jobs/{jobId}");
+            $"/api/tenants/{tenantBId}/jobs/{jobId}");
 
+        // The route matches the authenticated tenant,
+        // but the job belongs to another tenant.
         Assert.Equal(
             HttpStatusCode.NotFound,
             response.StatusCode);
     }
 
+
     private static async Task<Guid> CreateTenantAsync(
         HttpClient client)
     {
+        var adminToken = TestJwtTokenFactory.CreateToken(
+            Guid.NewGuid(),
+            isAdministrator: true);
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                adminToken);
+
         var response = await client.PostAsJsonAsync(
             "/api/tenants",
             new { Name = "Acme Logistics" });
@@ -194,6 +225,21 @@ public sealed class JobLifecycleTests
 
         return job.Id;
     }
+
+    private static void AuthenticateClient(
+        HttpClient client,
+        Guid tenantId)
+    {
+        var token = TestJwtTokenFactory.CreateToken(
+            Guid.NewGuid(),
+            tenantId: tenantId);
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+    }
+
 
     private sealed record TenantResponse(
         Guid Id,

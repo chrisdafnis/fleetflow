@@ -3,11 +3,13 @@ using FleetFlow.Application.Jobs.CreateJob;
 using FleetFlow.Application.Jobs.GetJob;
 using FleetFlow.Application.Jobs.ChangeJobStatus;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FleetFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/tenants/{tenantId:guid}/jobs")]
+[Authorize(Policy = "TenantAccess")]
 public sealed class JobsController(
     CreateJobService createJobService,
     GetJobService getJobService,

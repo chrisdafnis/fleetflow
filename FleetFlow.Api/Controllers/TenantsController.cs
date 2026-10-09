@@ -1,10 +1,12 @@
 ﻿using FleetFlow.Application.Tenants.CreateTenant;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FleetFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/tenants")]
+[Authorize(Policy = "AdministratorOnly")]
 public sealed class TenantsController(
     CreateTenantService createTenantService) : ControllerBase
 {
