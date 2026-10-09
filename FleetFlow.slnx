@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="FleetFlow.Api.IntegrationTests/FleetFlow.Api.IntegrationTests.csproj" Id="ae590668-09ba-4eb4-85ae-05409b475c88" />
   <Project Path="FleetFlow.Api/FleetFlow.Api.csproj" />
   <Project Path="FleetFlow.Application.Tests/FleetFlow.Application.Tests.csproj" Id="05f44c55-058c-4aca-b1a2-3c325bc5d40f" />
   <Project Path="FleetFlow.Application/FleetFlow.Application.csproj" />
