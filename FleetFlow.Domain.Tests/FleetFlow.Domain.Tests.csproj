@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FleetFlow.Application\FleetFlow.Application.csproj" />
     <ProjectReference Include="..\FleetFlow.Domain\FleetFlow.Domain.csproj" />
   </ItemGroup>
 
