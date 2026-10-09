@@ -2,6 +2,7 @@
 using FleetFlow.Application.Jobs;
 using FleetFlow.Application.Jobs.CreateJob;
 using FleetFlow.Application.Jobs.GetJob;
+using FleetFlow.Application.Jobs.ChangeJobStatus;
 using FleetFlow.Infrastructure.Persistence;
 using FleetFlow.Application.Tenants;
 using FleetFlow.Application.Tenants.CreateTenant;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<GetJobService>();
 
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<CreateTenantService>();
+builder.Services.AddScoped<ChangeJobStatusService>();
 
 var app = builder.Build();
 

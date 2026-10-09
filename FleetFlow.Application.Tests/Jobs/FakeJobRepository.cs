@@ -37,4 +37,11 @@ public sealed class FakeJobRepository : IJobRepository
 
         return Task.FromResult(jobs);
     }
+
+    public Task UpdateAsync(
+        Job job,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

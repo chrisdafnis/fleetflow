@@ -39,4 +39,11 @@ public sealed class JobRepository(FleetFlowDbContext dbContext)
             .OrderBy(x => x.Reference)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(
+        Job job,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

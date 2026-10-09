@@ -1,5 +1,4 @@
-﻿
-using FleetFlow.Domain;
+﻿using FleetFlow.Domain;
 
 namespace FleetFlow.Application.Jobs;
 
@@ -16,5 +15,9 @@ public interface IJobRepository
 
     Task<IReadOnlyList<Job>> GetByTenantAsync(
         Guid tenantId,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(
+        Job job,
         CancellationToken cancellationToken = default);
 }
