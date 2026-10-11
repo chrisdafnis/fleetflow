@@ -1,0 +1,147 @@
+﻿@page
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FleetFlow</title>
+</head>
+<body>
+    <main id="app">
+        <h1>FleetFlow</h1>
+
+        <form v-if="!session" v-on:submit.prevent="login">
+            <h2>Sign in</h2>
+
+            <div>
+                <label for="email">Email</label>
+                <input id="email"
+                       type="email"
+                       v-model="email"
+                       autocomplete="username"
+                       required />
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input id="password"
+                       type="password"
+                       v-model="password"
+                       autocomplete="current-password"
+                       required />
+            </div>
+
+            <p v-if="error" role="alert">{{ error }}</p>
+
+            <button type="submit" v-bind:disabled="loading">
+                {{ loading ? "Signing in..." : "Sign in" }}
+            </button>
+        </form>
+
+        <section v-else>
+            <h2>Your jobs</h2>
+
+            <form v-on:submit.prevent="createJob">
+                <h3>Create a job</h3>
+
+                <div>
+                    <label for="job-reference">Reference</label>
+                    <input id="job-reference"
+                           type="text"
+                           v-model="newReference"
+                           maxlength="50"
+                           pattern=".*\S.*"
+                           title="Enter a reference containing at least one non-space character."
+                           v-bind:disabled="creatingJob"
+                           required />
+                </div>
+
+                <div>
+                    <label for="job-description">Description</label>
+                    <textarea id="job-description"
+                              v-model="newDescription"
+                              maxlength="500"
+                              v-bind:disabled="creatingJob"></textarea>
+                </div>
+
+                <p v-if="createJobError" role="alert">
+                    {{ createJobError }}
+                </p>
+
+                <button type="submit" v-bind:disabled="creatingJob">
+                    {{ creatingJob ? "Creating..." : "Create job" }}
+                </button>
+            </form>
+
+            <button type="button"
+                    v-on:click="loadJobs"
+                    v-bind:disabled="jobsLoading">
+                Refresh jobs
+            </button>
+
+            <button type="button" v-on:click="logout">Sign out</button>
+
+            <p v-if="jobsLoading" role="status">Loading jobs...</p>
+            <p v-if="jobsError" role="alert">{{ jobsError }}</p>
+
+            <p v-if="!jobsLoading && !jobsError && jobs.length === 0">
+                No jobs yet.
+            </p>
+
+            <p v-if="jobActionError" role="alert">
+                {{ jobActionError }}
+            </p>
+
+            <table v-if="jobs.length > 0">
+                <thead>
+                    <tr>
+                        <th scope="col">Reference</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="job in jobs" v-bind:key="job.id">
+                        <td>{{ job.reference }}</td>
+                        <td>{{ job.description }}</td>
+                        <td>{{ statusLabel(job.status) }}</td>
+                        <td>
+                            <button v-if="job.status === 0"
+                                    type="button"
+                                    v-on:click="changeJobStatus(job, 'start')"
+                                    v-bind:disabled="updatingJobId !== null">
+                                Start
+                            </button>
+
+                            <button v-if="job.status === 1"
+                                    type="button"
+                                    v-on:click="changeJobStatus(job, 'complete')"
+                                    v-bind:disabled="updatingJobId !== null">
+                                Complete
+                            </button>
+
+                            <button v-if="job.status === 0 || job.status === 1"
+                                    type="button"
+                                    v-on:click="changeJobStatus(job, 'cancel')"
+                                    v-bind:disabled="updatingJobId !== null">
+                                Cancel
+                            </button>
+
+                            <span v-if="updatingJobId === job.id" role="status">
+                                Updating...
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

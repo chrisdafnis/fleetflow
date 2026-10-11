@@ -120,7 +120,7 @@ builder.Services
             };
     });
 
-
+builder.Services.AddRazorPages();
 
 // Add authorization services.
 var app = builder.Build();
@@ -135,6 +135,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles();
+app.MapRazorPages();
 
 app.MapControllers();
 
