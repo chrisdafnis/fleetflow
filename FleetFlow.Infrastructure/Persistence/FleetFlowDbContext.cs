@@ -1,11 +1,14 @@
 ﻿using FleetFlow.Domain;
 using Microsoft.EntityFrameworkCore;
+using FleetFlow.Infrastructure.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace FleetFlow.Infrastructure.Persistence;
 
 public sealed class FleetFlowDbContext(
     DbContextOptions<FleetFlowDbContext> options)
-    : DbContext(options)
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
 
@@ -14,6 +17,15 @@ public sealed class FleetFlowDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasOne<Tenant>()
+                .WithMany()
+                .HasForeignKey(x => x.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.NormalizedEmail).IsUnique();
+        });
 
         modelBuilder.Entity<Tenant>(entity =>
         {

@@ -13,6 +13,7 @@ namespace FleetFlow.Api.Controllers;
 public sealed class JobsController(
     CreateJobService createJobService,
     GetJobService getJobService,
+    GetJobsService getJobsService,
     ChangeJobStatusService changeJobStatusService) : ControllerBase
 {
     [HttpPost]
@@ -53,6 +54,17 @@ public sealed class JobsController(
         return Ok(result);
     }
 
+    [HttpGet]
+    public async Task<ActionResult> GetAll(
+    Guid tenantId,
+    CancellationToken cancellationToken)
+    {
+        var jobs = await getJobsService.ExecuteAsync(
+            tenantId,
+            cancellationToken);
+
+        return Ok(jobs);
+    }
 
     [HttpPatch("{jobId:guid}/start")]
     public Task<ActionResult> Start(
@@ -60,6 +72,7 @@ public sealed class JobsController(
         Guid jobId,
         CancellationToken cancellationToken)
     {
+
         return ChangeStatus(
             tenantId,
             jobId,

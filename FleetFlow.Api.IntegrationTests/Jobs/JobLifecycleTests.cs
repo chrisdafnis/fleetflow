@@ -173,6 +173,60 @@ public sealed class JobLifecycleTests
             response.StatusCode);
     }
 
+    [Fact]
+    public async Task GetJobs_ReturnsOnlyCurrentTenantsJobs()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        // Create a job for Tenant A.
+        var tenantAId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantAId);
+        var tenantAJobId = await CreateJobAsync(client, tenantAId);
+
+        // Create a job for Tenant B.
+        var tenantBId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantBId);
+        await CreateJobAsync(client, tenantBId);
+
+        // Fetch Tenant A's list using Tenant A's token.
+        AuthenticateClient(client, tenantAId);
+
+        var response = await client.GetAsync(
+            $"/api/tenants/{tenantAId}/jobs");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var jobs = await response.Content
+            .ReadFromJsonAsync<List<JobResponse>>();
+
+        Assert.NotNull(jobs);
+
+        var job = Assert.Single(jobs);
+        Assert.Equal(tenantAJobId, job.Id);
+        Assert.Equal(tenantAId, job.TenantId);
+    }
+
+    [Fact]
+    public async Task GetJobs_WithNoJobs_ReturnsEmptyArray()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var tenantId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantId);
+
+        var response = await client.GetAsync(
+            $"/api/tenants/{tenantId}/jobs");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var jobs = await response.Content
+            .ReadFromJsonAsync<List<JobResponse>>();
+
+        Assert.NotNull(jobs);
+        Assert.Empty(jobs);
+    }
 
     private static async Task<Guid> CreateTenantAsync(
         HttpClient client)

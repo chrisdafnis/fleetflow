@@ -11,12 +11,28 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using FleetFlow.Api.Authentication;
+using FleetFlow.Infrastructure.Authentication;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+    options.Password.RequiredLength = 12;
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+})
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<FleetFlowDbContext>()
+    .AddSignInManager();
+builder.Services.AddScoped<AccessTokenService>();
 
 builder.Services.AddDbContext<FleetFlowDbContext>(options =>
     options.UseSqlServer(
@@ -29,6 +45,7 @@ builder.Services.AddScoped<GetJobService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<CreateTenantService>();
 builder.Services.AddScoped<ChangeJobStatusService>();
+builder.Services.AddScoped<GetJobsService>();
 
 builder.Services.AddHttpContextAccessor();
 
