@@ -1,6 +1,7 @@
 ﻿using FleetFlow.Application.Jobs;
 using FleetFlow.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace FleetFlow.Infrastructure.Persistence;
 
@@ -11,11 +12,42 @@ public sealed class JobRepository(FleetFlowDbContext dbContext)
         Job job,
         CancellationToken cancellationToken = default)
     {
-        await dbContext.Jobs.AddAsync(
-            job,
+        var referenceExists = await dbContext.Jobs.AnyAsync(
+            existing => existing.TenantId == job.TenantId
+                && existing.Reference == job.Reference,
             cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        if (referenceExists)
+        {
+            throw new DuplicateJobReferenceException(job.Reference);
+        }
+
+        await dbContext.Jobs.AddAsync(job, cancellationToken);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (
+            ex.InnerException is SqlException sqlException
+            && (sqlException.Number == 2601
+                || sqlException.Number == 2627))
+        {
+            // Confirm the violated uniqueness rule was the job reference.
+            var duplicateReference = await dbContext.Jobs.AnyAsync(
+                existing => existing.TenantId == job.TenantId
+                    && existing.Reference == job.Reference,
+                cancellationToken);
+
+            if (duplicateReference)
+            {
+                throw new DuplicateJobReferenceException(
+                    job.Reference,
+                    ex);
+            }
+
+            throw;
+        }
     }
 
     public async Task<Job?> GetByIdAsync(

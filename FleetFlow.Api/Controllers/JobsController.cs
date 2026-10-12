@@ -1,9 +1,11 @@
 ﻿
+using FleetFlow.Application.Jobs;
 using FleetFlow.Application.Jobs.CreateJob;
 using FleetFlow.Application.Jobs.GetJob;
 using FleetFlow.Application.Jobs.ChangeJobStatus;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace FleetFlow.Api.Controllers;
 
@@ -22,17 +24,27 @@ public sealed class JobsController(
         [FromBody] CreateJobBody request,
         CancellationToken cancellationToken)
     {
-        var result = await createJobService.ExecuteAsync(
-            new CreateJobRequest(
-                tenantId,
-                request.Reference,
-                request.Description),
-            cancellationToken);
+        try
+        {
+            var result = await createJobService.ExecuteAsync(
+                new CreateJobRequest(
+                    tenantId,
+                    request.Reference,
+                    request.Description ?? string.Empty),
+                cancellationToken);
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { tenantId, jobId = result.Id },
-            result);
+            return CreatedAtAction(
+                nameof(GetById),
+                new { tenantId, jobId = result.Id },
+                result);
+        }
+        catch (DuplicateJobReferenceException ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Duplicate job reference",
+                detail: ex.Message);
+        }
     }
 
     [HttpGet("{jobId:guid}")]
@@ -142,5 +154,9 @@ public sealed class JobsController(
 }
 
 public sealed record CreateJobBody(
+    [Required(ErrorMessage = "Job reference is required.")]
+    [StringLength(50, ErrorMessage = "Job reference cannot exceed 50 characters.")]
     string Reference,
-    string Description);
+
+    [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
+    string? Description);

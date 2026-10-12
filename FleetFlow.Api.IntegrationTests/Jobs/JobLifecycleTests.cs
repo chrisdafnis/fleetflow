@@ -294,6 +294,118 @@ public sealed class JobLifecycleTests
                 token);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public async Task CreateJob_WithInvalidReference_ReturnsBadRequest(
+    string? reference)
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var tenantId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantId);
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/tenants/{tenantId}/jobs",
+            new
+            {
+                Reference = reference,
+                Description = "Test delivery"
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problem = await response.Content.ReadFromJsonAsync<
+            Microsoft.AspNetCore.Mvc.ValidationProblemDetails>();
+
+        Assert.NotNull(problem);
+        Assert.True(problem.Errors.ContainsKey("Reference"));
+    }
+
+    [Theory]
+    [InlineData(51, 20, "Reference")]
+    [InlineData(20, 501, "Description")]
+    public async Task CreateJob_WithOversizedField_ReturnsBadRequest(
+    int referenceLength,
+    int descriptionLength,
+    string expectedField)
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var tenantId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantId);
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/tenants/{tenantId}/jobs",
+            new
+            {
+                Reference = new string('R', referenceLength),
+                Description = new string('D', descriptionLength)
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problem = await response.Content.ReadFromJsonAsync<
+            Microsoft.AspNetCore.Mvc.ValidationProblemDetails>();
+
+        Assert.NotNull(problem);
+        Assert.True(problem.Errors.ContainsKey(expectedField));
+    }
+
+    [Fact]
+    public async Task CreateJob_WithDuplicateReference_ReturnsConflict()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var tenantId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantId);
+
+        var originalJobId = await CreateJobAsync(client, tenantId);
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/tenants/{tenantId}/jobs",
+            new
+            {
+                Reference = "JOB-001",
+                Description = "Duplicate delivery"
+            });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        var problem = await response.Content.ReadFromJsonAsync<
+            Microsoft.AspNetCore.Mvc.ProblemDetails>();
+
+        Assert.NotNull(problem);
+        Assert.Equal("Duplicate job reference", problem.Title);
+        Assert.Contains("JOB-001", problem.Detail!);
+
+        var jobs = await client.GetFromJsonAsync<List<JobResponse>>(
+            $"/api/tenants/{tenantId}/jobs");
+
+        Assert.NotNull(jobs);
+        Assert.Equal(originalJobId, Assert.Single(jobs).Id);
+    }
+
+    [Fact]
+    public async Task CreateJob_WithSameReferenceInDifferentTenants_Succeeds()
+    {
+        using var factory = new FleetFlowWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var tenantAId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantAId);
+        var jobAId = await CreateJobAsync(client, tenantAId);
+
+        var tenantBId = await CreateTenantAsync(client);
+        AuthenticateClient(client, tenantBId);
+        var jobBId = await CreateJobAsync(client, tenantBId);
+
+        Assert.NotEqual(jobAId, jobBId);
+    }
 
     private sealed record TenantResponse(
         Guid Id,

@@ -142,8 +142,20 @@ createApp({
                 }
 
                 if (!response.ok) {
-                    this.createJobError =
-                        "Unable to create the job. Check the details and try again.";
+                    const problem = await response.json().catch(() => null);
+
+                    if (response.status === 400 && problem?.errors) {
+                        this.createJobError = Object.values(problem.errors)
+                            .flat()
+                            .join(" ");
+                    } else if (response.status === 409) {
+                        this.createJobError =
+                            problem?.detail ?? "This job reference is already in use.";
+                    } else {
+                        this.createJobError =
+                            "Unable to create the job. Please try again.";
+                    }
+
                     return;
                 }
 
