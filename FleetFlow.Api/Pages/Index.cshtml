@@ -6,12 +6,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/dashboard.css" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FleetFlow</title>
 </head>
 <body>
-    <main id="app">
+    <main id="app" v-cloak>
         <h1>FleetFlow</h1>
 
         <form v-if="!session" v-on:submit.prevent="login">
@@ -95,50 +96,61 @@
             <p v-if="jobActionError" role="alert">
                 {{ jobActionError }}
             </p>
+            <div v-if="jobs.length > 0"
+                 class="table-container"
+                 role="region"
+                 aria-label="Jobs"
+                 tabindex="0">
 
-            <table v-if="jobs.length > 0">
-                <thead>
-                    <tr>
-                        <th scope="col">Reference</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="job in jobs" v-bind:key="job.id">
-                        <td>{{ job.reference }}</td>
-                        <td>{{ job.description }}</td>
-                        <td>{{ statusLabel(job.status) }}</td>
-                        <td>
-                            <button v-if="job.status === 0"
-                                    type="button"
-                                    v-on:click="changeJobStatus(job, 'start')"
-                                    v-bind:disabled="updatingJobId !== null">
-                                Start
-                            </button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Reference</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="job in jobs" v-bind:key="job.id">
+                            <td>{{ job.reference }}</td>
+                            <td>{{ job.description }}</td>
+                            <td>
+                                <span class="status-badge"
+                                      v-bind:class="'status-' + job.status">
+                                    {{ statusLabel(job.status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <button v-if="job.status === 0"
+                                        type="button"
+                                        v-on:click="changeJobStatus(job, 'start')"
+                                        v-bind:disabled="updatingJobId !== null">
+                                    Start
+                                </button>
 
-                            <button v-if="job.status === 1"
-                                    type="button"
-                                    v-on:click="changeJobStatus(job, 'complete')"
-                                    v-bind:disabled="updatingJobId !== null">
-                                Complete
-                            </button>
+                                <button v-if="job.status === 1"
+                                        type="button"
+                                        v-on:click="changeJobStatus(job, 'complete')"
+                                        v-bind:disabled="updatingJobId !== null">
+                                    Complete
+                                </button>
 
-                            <button v-if="job.status === 0 || job.status === 1"
-                                    type="button"
-                                    v-on:click="changeJobStatus(job, 'cancel')"
-                                    v-bind:disabled="updatingJobId !== null">
-                                Cancel
-                            </button>
+                                <button v-if="job.status === 0 || job.status === 1"
+                                        type="button"
+                                        v-on:click="changeJobStatus(job, 'cancel')"
+                                        v-bind:disabled="updatingJobId !== null">
+                                    Cancel
+                                </button>
 
-                            <span v-if="updatingJobId === job.id" role="status">
-                                Updating...
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                <span v-if="updatingJobId === job.id" role="status">
+                                    Updating...
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
